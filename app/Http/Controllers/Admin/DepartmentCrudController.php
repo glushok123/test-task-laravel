@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\DepartmentRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Validator;
+use \App\Models\User;
+use \App\Models\DepartmentUser;
 
 /**
  * Class DepartmentCrudController
@@ -28,7 +31,13 @@ class DepartmentCrudController extends CrudController
     {
         CRUD::setModel(\App\Models\Department::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/department');
-        CRUD::setEntityNameStrings('department', 'departments');
+        CRUD::setEntityNameStrings('отдел', 'Отделы');
+
+        $this->validRulesForField = [
+
+            'logo' => 'required|file',
+
+        ];
     }
 
     /**
@@ -39,13 +48,26 @@ class DepartmentCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-        CRUD::column('created_at');
-        CRUD::column('description');
-        CRUD::column('logo');
-        CRUD::column('name');
-        CRUD::column('updated_at');
-        CRUD::column('user_id');
+        CRUD::addColumn([
+            'label' => "Логотип",
+            'name' => "logo",
+            'type' => 'image',
+            'prefix' => 'public/',
+            'height' => '100px',
+            'width' => '100px',
+        ]); 
 
+        CRUD::addColumn(['name' => 'name', 'label' => "Название"]);
+        CRUD::addColumn(['name' => 'description', 'label' => "Описание"]);
+
+        CRUD::addColumn([
+            'label'     => 'Сотрудники', // Table column heading
+            'type'      => 'select_multiple',
+            'name'      => 'user', // the method that defines the relationship in your Model
+            'entity'    => 'user', // the method that defines the relationship in your Model
+            'attribute' => 'id', // foreign key attribute that is shown to user
+            'model'     => '\App\Models\DepartmentUser', // foreign key model
+        ]); 
         /**
          * Columns can be defined using the fluent syntax or array syntax:
          * - CRUD::column('price')->type('number');
@@ -61,28 +83,20 @@ class DepartmentCrudController extends CrudController
      */
     protected function setupCreateOperation()
     {
+        $this->crud->set('show.setFromDb', false);
         CRUD::setValidation(DepartmentRequest::class);
 
-        CRUD::field('description');
+        CRUD::addField(['name' => 'name', 'label' => "Название"]);
+        CRUD::addField(['name' => 'description', 'label' => "Описание"]);
 
-        CRUD::field('name');
-        CRUD::field('user_id');
-        
-        $this->crud->addField([
-            'label' => "logo",
-            'name' => "logo",
-            'type' => 'image',
-            'crop' => true, // set to true to allow cropping, false to disable
-            'aspect_ratio' => 1, // omit or set to 0 to allow any aspect ratio
-            // 'disk'      => 's3_bucket', // in case you need to show images from a different disk
-            // 'prefix'    => 'uploads/images/profile_pictures/' // in case your db value is only the file name (no path), you can use this to prepend your path to the image src (in HTML), before it's shown to the user;
-        ]);
+        CRUD::addField([
+            'name' => 'logo',
+            'label' => 'Логотип',
+            'type' => 'upload',
+            'upload' => true,
+            'disk' => 'local',
+        ], 'both');
 
-        /**
-         * Fields can be defined using the fluent syntax or array syntax:
-         * - CRUD::field('price')->type('number');
-         * - CRUD::addField(['name' => 'price', 'type' => 'number'])); 
-         */
     }
 
     /**

@@ -15,13 +15,10 @@ class CreateDepartmentsTable extends Migration
     {
         Schema::create('departments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id')->comment('Идентификатор пользователя');
             $table->string('name', 100)->comment('Название отдела');
             $table->string('description', 255)->comment('Описание отдела');
-            $table->string('logo', 255)->comment('Логотип');
+            $table->string('logo', 255)->nullable()->comment('Логотип');
             $table->timestamps();
-
-            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 
